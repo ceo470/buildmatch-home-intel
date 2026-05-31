@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Intelligence Report — BuildMatch AI</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: #f5f4f0; color: #1c1917;
+  min-height: 100vh; padding: 40px 20px 60px;
+}
+.page { max-width: 580px; margin: 0 auto; }
+
+/* Brand */
+.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.brand-logo {
+  font-family: Georgia, serif; font-size: 18px;
+  font-weight: 700; color: #1c1917; letter-spacing: -0.02em;
+}
+.brand-logo span { color: #0F6E56; }
+.brand-tag {
+  font-size: 11px; color: #a09890; background: #e8e4df;
+  padding: 3px 10px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+/* Card */
+.card { background: #1c1917; border-radius: 14px; padding: 32px 28px; margin-bottom: 20px; }
+.eyebrow { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #9FE1CB; margin-bottom: 8px; }
+.card-title {
+  font-family: Georgia, serif; font-size: 24px;
+  font-weight: 700; color: #f5f4f0; line-height: 1.25; margin-bottom: 8px;
+}
+.card-sub { font-size: 14px; color: #a09890; line-height: 1.65; }
+
+/* Progress */
+.prog { display: flex; gap: 6px; margin: 24px 0 22px; }
+.pd { height: 3px; border-radius: 2px; flex: 1; background: #3a3632; transition: background 0.3s; }
+.pd.on { background: #f5f4f0; }
+
+/* Steps */
+.step { display: none; } .step.on { display: block; }
+.slabel { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #9FE1CB; margin-bottom: 6px; }
+.sq { font-size: 16px; font-weight: 600; color: #f5f4f0; margin-bottom: 18px; line-height: 1.4; }
+
+/* Address input */
+.arow { display: flex; gap: 8px; margin-bottom: 10px; }
+.arow input {
+  flex: 1; font-size: 15px; padding: 0 14px; height: 48px;
+  border-radius: 8px; border: 1.5px solid #3a3632;
+  background: #2c2a27; color: #f5f4f0;
+  font-family: Inter, system-ui, sans-serif; outline: none;
+  transition: border-color 0.15s;
+}
+.arow input::placeholder { color: #595550; }
+.arow input:focus { border-color: #9FE1CB; }
+.abtn {
+  height: 48px; padding: 0 22px; border-radius: 8px;
+  background: #f5f4f0; color: #1c1917; border: none;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: Inter, system-ui, sans-serif; white-space: nowrap;
+  transition: background 0.15s;
+}
+.abtn:hover { background: #e8e4df; }
+.ahint { font-size: 12px; color: #595550; line-height: 1.5; }
+.err { font-size: 13px; color: #F09595; margin-top: 8px; display: none; }
+
+/* Loading */
+.loading { text-align: center; padding: 32px 0; }
+.spinner {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2.5px solid #3a3632; border-top-color: #9FE1CB;
+  animation: spin 0.75s linear infinite; margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p { font-size: 13px; color: #a09890; }
+.loading .sub { font-size: 11px; color: #595550; margin-top: 6px; }
+
+/* Home pill */
+.hpill {
+  display: flex; align-items: center; gap: 12px;
+  background: #2c2a27; border-radius: 8px;
+  padding: 12px 16px; margin-bottom: 20px;
+}
+.hpill-icon { font-size: 20px; color: #9FE1CB; flex-shrink: 0; }
+.hpill-addr { font-size: 14px; font-weight: 600; color: #f5f4f0; }
+.hpill-meta { font-size: 12px; color: #a09890; margin-top: 2px; }
+.hpill-badge {
+  margin-left: auto; font-size: 11px; font-weight: 600;
+  background: #085041; color: #9FE1CB;
+  padding: 4px 12px; border-radius: 20px; flex-shrink: 0;
+}
+
+/* Project grid */
+.pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+@media (max-width: 460px) { .pgrid { grid-template-columns: repeat(2, 1fr); } }
+.pc {
+  background: #2c2a27; border: 1.5px solid #3a3632;
+  border-radius: 8px; padding: 14px 12px 12px; cursor: pointer;
+  transition: border-color 0.15s;
+}
+.pc:hover { border-color: #595550; }
+.pc.on { border-color: #f5f4f0; background: #2f2d28; }
+.pc-icon { font-size: 22px; color: #9FE1CB; margin-bottom: 8px; }
+.pc-name { font-size: 13px; font-weight: 600; color: #f5f4f0; margin-bottom: 3px; }
+.pc-roi { font-size: 11px; color: #9FE1CB; }
+
+/* Timeline */
+.tgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 22px; }
+@media (max-width: 460px) { .tgrid { grid-template-columns: 1fr; } }
+.tc {
+  background: #2c2a27; border: 1.5px solid #3a3632;
+  border-radius: 8px; padding: 12px 10px;
+  text-align: center; cursor: pointer; transition: border-color 0.15s;
+}
+.tc:hover { border-color: #595550; }
+.tc.on { border-color: #f5f4f0; background: #2f2d28; }
+.tc-title { font-size: 13px; font-weight: 600; color: #f5f4f0; margin-bottom: 3px; }
+.tc-sub { font-size: 11px; color: #a09890; }
+
+/* Button */
+.pbtn {
+  background: #f5f4f0; color: #1c1917; border: none;
+  border-radius: 8px; padding: 13px 26px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: Inter, system-ui, sans-serif; transition: background 0.15s;
+}
+.pbtn:hover { background: #e8e4df; }
+
+/* Results */
+.sec-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #9FE1CB; margin-bottom: 8px; }
+.divider { border: none; border-top: 1px solid #3a3632; margin: 16px 0; }
+
+.hv-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 4px; }
+.hv-box { background: #2c2a27; border-radius: 8px; padding: 14px; }
+.hv-val { font-family: Georgia, serif; font-size: 20px; font-weight: 700; color: #f5f4f0; margin-bottom: 3px; }
+.hv-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #a09890; }
+
+.sgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.sb { background: #2c2a27; border-radius: 8px; padding: 14px 12px; }
+.sv { font-family: Georgia, serif; font-size: 22px; font-weight: 700; color: #f5f4f0; margin-bottom: 4px; }
+.sl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #a09890; }
+
+.comp-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid #3a3632;
+}
+.comp-row:last-child { border-bottom: none; }
+.comp-addr { font-size: 13px; color: #f5f4f0; margin-bottom: 2px; }
+.comp-meta { font-size: 11px; color: #a09890; }
+.comp-right { text-align: right; }
+.comp-price { font-size: 14px; font-weight: 700; color: #9FE1CB; }
+.comp-date { font-size: 11px; color: #a09890; }
+
+.ibox { background: #085041; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+.itext { font-size: 13px; color: #9FE1CB; line-height: 1.65; }
+
+.wbox { background: #412402; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+.wtext { font-size: 13px; color: #FAC775; line-height: 1.65; }
+
+.ctabox { border-top: 1px solid #3a3632; padding-top: 20px; margin-top: 6px; }
+.cta-h { font-family: Georgia, serif; font-size: 18px; color: #f5f4f0; margin-bottom: 8px; line-height: 1.3; }
+.cta-b { font-size: 13px; color: #a09890; line-height: 1.65; margin-bottom: 18px; }
+.cta-later {
+  display: block; font-size: 12px; color: #595550;
+  margin-top: 12px; cursor: pointer; background: none;
+  border: none; font-family: inherit; transition: color 0.15s;
+}
+.cta-later:hover { color: #a09890; }
+
+.footer { font-size: 12px; color: #a09890; text-align: center; line-height: 1.7; margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="brand">
+    <span class="brand-logo">Build<span>Match</span> AI</span>
+    <span class="brand-tag">Member benefit</span>
+  </div>
+
+  <div class="card">
+    <p class="eyebrow">Home intelligence report</p>
+    <p class="card-title">What could your home be worth after renovating?</p>
+    <p class="card-sub">Enter your address to see local permit data, recent comp sales, and project ROI specific to your zip code — free for newsletter members.</p>
+
+    <div class="prog">
+      <div class="pd on" id="p1"></div>
+      <div class="pd" id="p2"></div>
+      <div class="pd" id="p3"></div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="s1" class="step on">
+      <p class="slabel">Step 1 of 3</p>
+      <p class="sq">What's your home address?</p>
+      <div class="arow">
+        <input type="text" id="addrIn" placeholder="123 Main St, Austin TX 78701"
+          autocomplete="street-address" onkeydown="if(event.key==='Enter')go2()" />
+        <button class="abtn" onclick="go2()">Look up</button>
+      </div>
+      <p id="addrErr" class="err">Please enter a full address including city and state.</p>
+      <p class="ahint">Free for BuildMatch AI members &nbsp;·&nbsp; We pull local comp data and renovation ROI for your specific neighborhood</p>
+    </div>
+
+    <!-- STEP 1b: Loading -->
+    <div id="s1b" class="step">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Pulling property data for your address...</p>
+        <p class="sub">Matching zip code to local renovation comps</p>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="s2" class="step">
+      <div class="hpill">
+        <span class="hpill-icon">&#8962;</span>
+        <div style="min-width:0">
+          <p class="hpill-addr" id="dAddr"></p>
+          <p class="hpill-meta" id="dMeta"></p>
+        </div>
+        <span class="hpill-badge">Verified</span>
+      </div>
+
+      <p class="slabel">Step 2 of 3</p>
+      <p class="sq">Which project are you thinking about?</p>
+      <div class="pgrid" id="projGrid"></div>
+
+      <p class="slabel" style="margin-bottom:10px">When are you thinking about this?</p>
+      <div class="tgrid">
+        <div class="tc" onclick="selTl(this,'now')"><p class="tc-title">Ready now</p><p class="tc-sub">Next 1–3 months</p></div>
+        <div class="tc" onclick="selTl(this,'soon')"><p class="tc-title">Planning ahead</p><p class="tc-sub">3–12 months out</p></div>
+        <div class="tc" onclick="selTl(this,'exploring')"><p class="tc-title">Just exploring</p><p class="tc-sub">No firm timeline</p></div>
+      </div>
+      <button class="pbtn" onclick="go3()">See my local data &rarr;</button>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="s3" class="step">
+      <div class="hpill">
+        <span class="hpill-icon">&#8962;</span>
+        <div style="min-width:0">
+          <p class="hpill-addr" id="dAddr2"></p>
+          <p class="hpill-meta" id="dProj"></p>
+        </div>
+      </div>
+
+      <p class="sec-label">Your home</p>
+      <div class="hv-grid" id="homeCard"></div>
+      <hr class="divider">
+
+      <p class="sec-label">Recent sales near you</p>
+      <div id="compsBox" style="margin-bottom:4px"></div>
+      <hr class="divider">
+
+      <p class="sec-label" id="roiLabel"></p>
+      <div class="sgrid" id="statGrid"></div>
+
+      <div id="warnBox"></div>
+      <div class="ibox"><p class="itext" id="insightTxt"></p></div>
+
+      <div class="ctabox">
+        <p class="cta-h" id="ctaH"></p>
+        <p class="cta-b" id="ctaB"></p>
+        <button class="pbtn" onclick="goMatch()">Get matched on BuildMatch AI &rarr;</button>
+        <button class="cta-later" id="ctaLater" onclick="saveLater()"></button>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="footer">
+    BuildMatch AI &nbsp;·&nbsp; buildmatchai.com<br>
+    ROI data sourced from Remodeling Magazine Cost vs Value 2025 &nbsp;·&nbsp; Property comps via public records
+  </p>
+</div>
+
+<script>
+// ── Dummy data keyed by zip prefix ────────────────────────────
+var METROS = {
+  "100": { label: "New York, NY",      base: 1240000, sold: 890000,  yr: 1967, bd: 3, ba: 2, sf: 1850,
+    comps: [["118 Nearby St",1180000,"Nov 2024",3,2,1720],["201 Local Ave",1310000,"Sep 2024",4,2,2100],["87 Block Rd",1095000,"Aug 2024",3,1,1600]],
+    roi: { kitchen:[27000,23490,87,"+22%"], bath:[19000,15390,81,"+8%"], adu:[185000,136900,74,"+18%"], roof:[14000,9520,68,"-3%"], deck:[17000,12580,74,"+41%"], hvac:[12000,7320,61,"+12%"] } },
+  "900": { label: "Los Angeles, CA",   base: 1580000, sold: 1140000, yr: 1971, bd: 3, ba: 2, sf: 1960,
+    comps: [["Nearby Bungalow",1510000,"Oct 2024",3,2,1800],["Corner Home",1720000,"Aug 2024",4,3,2300],["Mid-Block SFR",1440000,"Jul 2024",3,1,1650]],
+    roi: { kitchen:[29000,26100,90,"+19%"], bath:[21000,17850,85,"+14%"], adu:[210000,163800,78,"+32%"], roof:[16000,11200,70,"+8%"], deck:[18000,14040,78,"+55%"], hvac:[13000,8190,63,"+9%"] } },
+  "606": { label: "Chicago, IL",       base: 620000,  sold: 465000,  yr: 1958, bd: 3, ba: 2, sf: 1650,
+    comps: [["Similar Greystone",590000,"Nov 2024",3,2,1600],["Rehabbed 2-Flat",670000,"Sep 2024",4,2,1900],["Vintage SFR",548000,"Aug 2024",3,1,1480]],
+    roi: { kitchen:[22000,17600,80,"+15%"], bath:[17000,12750,75,"+6%"], adu:[160000,108800,68,"+9%"], roof:[13000,8320,64,"-1%"], deck:[15000,10050,67,"+28%"], hvac:[11000,6490,59,"+7%"] } },
+  "750": { label: "Dallas, TX",        base: 490000,  sold: 370000,  yr: 1982, bd: 4, ba: 2, sf: 2100,
+    comps: [["Nearby Ranch",468000,"Oct 2024",4,2,2000],["Updated Colonial",530000,"Sep 2024",4,3,2400],["Corner Lot",445000,"Jul 2024",3,2,1850]],
+    roi: { kitchen:[20000,17000,85,"+24%"], bath:[16000,12800,80,"+12%"], adu:[155000,111600,72,"+21%"], roof:[12000,7920,66,"+5%"], deck:[14000,10640,76,"+48%"], hvac:[10000,5900,59,"+15%"] } },
+  "330": { label: "Miami, FL",         base: 820000,  sold: 590000,  yr: 1978, bd: 3, ba: 2, sf: 1750,
+    comps: [["Waterfront Adjacent",795000,"Nov 2024",3,2,1700],["Updated CBS Home",890000,"Oct 2024",4,2,2100],["Pool Home",758000,"Aug 2024",3,1,1500]],
+    roi: { kitchen:[25000,22500,90,"+27%"], bath:[19000,16150,85,"+18%"], adu:[195000,152100,78,"+29%"], roof:[15000,11250,75,"+11%"], deck:[16000,13440,84,"+61%"], hvac:[12000,7560,63,"+19%"] } },
+  "850": { label: "Phoenix, AZ",       base: 440000,  sold: 325000,  yr: 1989, bd: 3, ba: 2, sf: 1900,
+    comps: [["Similar Ranch",418000,"Oct 2024",3,2,1800],["Updated Desert Modern",475000,"Sep 2024",4,2,2200],["Pool Home",402000,"Aug 2024",3,1,1600]],
+    roi: { kitchen:[21000,18270,87,"+21%"], bath:[17000,13940,82,"+16%"], adu:[165000,123750,75,"+24%"], roof:[13000,8840,68,"+9%"], deck:[15000,11400,76,"+52%"], hvac:[11000,6710,61,"+22%"] } }
+};
+
+var DEFAULT = { label: "your area", base: 520000, sold: 395000, yr: 1979, bd: 3, ba: 2, sf: 1780,
+  comps: [["Nearby comparable",495000,"Oct 2024",3,2,1700],["Updated similar",565000,"Sep 2024",4,2,2000],["Block comp",472000,"Aug 2024",3,1,1550]],
+  roi: { kitchen:[24000,18240,76,"+14%"], bath:[18000,13320,74,"+9%"], adu:[175000,122500,70,"+18%"], roof:[13000,8580,66,"+3%"], deck:[16000,11360,71,"+33%"], hvac:[11000,6490,59,"+8%"] } };
+
+var PROJECTS = [
+  { key:"kitchen", icon:"&#9874;", name:"Kitchen",       label:"Kitchen remodel",      roi:"kitchen" },
+  { key:"bath",    icon:"&#9870;", name:"Bathroom",      label:"Bathroom remodel",     roi:"bath" },
+  { key:"adu",     icon:"&#8962;", name:"ADU",           label:"ADU / addition",       roi:"adu" },
+  { key:"roof",    icon:"&#11088;",name:"Roof",          label:"Roof replacement",     roi:"roof" },
+  { key:"deck",    icon:"&#127795;",name:"Deck / outdoor",label:"Deck or outdoor space",roi:"deck" },
+  { key:"hvac",    icon:"&#9889;", name:"HVAC / elec.",  label:"HVAC / electrical",    roi:"hvac" }
+];
+
+var CTAS = {
+  now:       { h:"Good timing — contractors have availability now", b:"We will match you with vetted contractors active in your zip code with a verified permit history in your project type. Takes two minutes.", later:null },
+  soon:      { h:"Smart to start the process now", b:"The best contractors in your area are booking 8–12 weeks out. Getting matched now means you choose — not whoever is left when you are ready.", later:"Save my report and remind me in 60 days" },
+  exploring: { h:"Good intel to have before you decide", b:"No pressure. Browse matched contractors on BuildMatch AI with no commitment — your report is saved and we will follow up when you are ready.", later:"Just save my report for later" }
+};
+
+// ── State ────────────────────────────────────────────────────
+var S = { addr:null, zip:null, metro:null, projKey:null, projLabel:null, projRoi:null, tl:null };
+
+// ── Init ─────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+  var p = new URLSearchParams(window.location.search);
+  var pre = p.get('address');
+  if (pre) document.getElementById('addrIn').value = decodeURIComponent(pre);
+
+  document.getElementById('projGrid').innerHTML = PROJECTS.map(function(p) {
+    return '<div class="pc" onclick="selP(this,\''+p.key+'\',\''+p.label+'\',\''+p.roi+'\')">'+
+      '<div class="pc-icon">'+p.icon+'</div>'+
+      '<p class="pc-name">'+p.name+'</p>'+
+      '<p class="pc-roi" id="roi_'+p.key+'">—</p>'+
+      '</div>';
+  }).join('');
+});
+
+// ── Step 1 ───────────────────────────────────────────────────
+function go2() {
+  var v = document.getElementById('addrIn').value.trim();
+  document.getElementById('addrErr').style.display = 'none';
+  if (v.length < 8) { document.getElementById('addrErr').style.display='block'; return; }
+
+  S.addr = v;
+  S.zip  = (v.match(/\d{5}/) || [null])[0];
+
+  // Find metro from zip prefix
+  S.metro = DEFAULT;
+  if (S.zip) {
+    var p3 = S.zip.slice(0,3);
+    if (METROS[p3]) S.metro = METROS[p3];
+  }
+
+  // Update ROI labels in grid
+  PROJECTS.forEach(function(p) {
+    var el = document.getElementById('roi_'+p.key);
+    if (el) el.textContent = S.metro.roi[p.roi][2]+'% ROI locally';
+  });
+
+  sw('s1','s1b');
+
+  // Simulate API call — 1.2s delay for realism
+  setTimeout(function() {
+    document.getElementById('dAddr').textContent = S.addr;
+    document.getElementById('dAddr2').textContent = S.addr;
+    var parts = ['Single family','Built '+S.metro.yr];
+    if (S.zip) parts.push('Zip '+S.zip);
+    document.getElementById('dMeta').textContent = parts.join(' · ');
+    document.getElementById('p2').classList.add('on');
+    sw('s1b','s2');
+  }, 1200);
+}
+
+// ── Step 2 ───────────────────────────────────────────────────
+function selP(el, key, label, roiKey) {
+  document.querySelectorAll('.pc').forEach(function(c){c.classList.remove('on');});
+  el.classList.add('on');
+  S.projKey=key; S.projLabel=label; S.projRoi=roiKey;
+}
+function selTl(el, key) {
+  document.querySelectorAll('.tc').forEach(function(c){c.classList.remove('on');});
+  el.classList.add('on'); S.tl=key;
+}
+
+// ── Step 3 ───────────────────────────────────────────────────
+function go3() {
+  if (!S.projKey) { alert('Please select a project type first.'); return; }
+  var m = S.metro;
+  var r = m.roi[S.projRoi];
+  var tl = S.tl || 'exploring';
+
+  // Home card
+  document.getElementById('homeCard').innerHTML =
+    hv('$'+fmt(m.base), 'Est. home value') +
+    hv('$'+fmt(m.sold), 'Last sold') +
+    hv(m.sf.toLocaleString()+' sf', 'Living area') +
+    hv(m.bd+' bd · '+m.ba+' ba', 'Layout');
+
+  // Comps
+  document.getElementById('compsBox').innerHTML = m.comps.map(function(c) {
+    return '<div class="comp-row">'+
+      '<div><p class="comp-addr">'+c[0]+'</p>'+
+      '<p class="comp-meta">'+c[3]+'bd · '+c[4]+'ba · '+c[5].toLocaleString()+' sf</p></div>'+
+      '<div class="comp-right"><p class="comp-price">$'+fmt(c[1])+'</p>'+
+      '<p class="comp-date">'+c[2]+'</p></div>'+
+      '</div>';
+  }).join('');
+
+  // ROI stats
+  document.getElementById('roiLabel').textContent = S.projLabel+' ROI — '+m.label;
+  document.getElementById('statGrid').innerHTML =
+    sb('$'+fmt(r[0]),'Avg project cost') +
+    sb('$'+fmt(r[1]),'Avg value added') +
+    sb(r[2]+'%','Local ROI');
+
+  // Pre-1990 warning
+  document.getElementById('warnBox').innerHTML = m.yr < 1990 ?
+    '<div class="wbox"><p class="wtext">&#9888;&nbsp; Your home was built in '+m.yr+
+    '. Pre-1990 homes often carry hidden scope items — galvanized supply lines, outdated panels, or asbestos materials that surface after demo. Budget a 15–20% contingency on top of initial contractor quotes.</p></div>' : '';
+
+  // Insight
+  var net = r[1]-r[0];
+  document.getElementById('insightTxt').textContent =
+    S.projLabel+' projects in '+m.label+' are returning a net avg gain of $'+fmt(net)+
+    ' after project costs — a '+r[2]+'% ROI. Permit activity for this category is '+r[3]+
+    ' vs last quarter, which typically signals '+(r[3].includes('+')?'rising':'stable')+
+    ' contractor pricing over the next 60–90 days.';
+
+  // CTA
+  document.getElementById('dProj').textContent = S.projLabel+' · '+m.label;
+  var cta = CTAS[tl];
+  document.getElementById('ctaH').textContent = cta.h;
+  document.getElementById('ctaB').textContent = cta.b;
+  var later = document.getElementById('ctaLater');
+  if (cta.later) { later.textContent=cta.later; later.style.display='block'; }
+  else { later.style.display='none'; }
+
+  document.getElementById('p3').classList.add('on');
+  sw('s2','s3');
+}
+
+function goMatch() {
+  var url = 'https://buildmatchai.com/get-matched';
+  if (S.addr) url += '?address='+encodeURIComponent(S.addr);
+  if (S.projLabel) url += '&project='+encodeURIComponent(S.projLabel);
+  window.open(url,'_blank');
+}
+
+function saveLater() {
+  document.querySelector('.ctabox').innerHTML =
+    '<p style="font-family:Georgia,serif;font-size:18px;color:#f5f4f0;margin-bottom:8px">Report saved to your BuildMatch AI account</p>'+
+    '<p style="font-size:13px;color:#a09890;line-height:1.65">We will reach out when contractor availability opens up in your area. Come back anytime to get matched.</p>';
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function sw(h,s){ document.getElementById(h).classList.remove('on'); document.getElementById(s).classList.add('on'); }
+function hv(v,l){ return '<div class="hv-box"><p class="hv-val">'+v+'</p><p class="hv-lbl">'+l+'</p></div>'; }
+function sb(v,l){ return '<div class="sb"><p class="sv">'+v+'</p><p class="sl">'+l+'</p></div>'; }
+function fmt(n){ if(!n) return '—'; if(n>=1000000) return (n/1000000).toFixed(1)+'M'; if(n>=1000) return Math.round(n/1000)+'k'; return n; }
+</script>
+</body>
+</html>
